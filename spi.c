@@ -2,6 +2,7 @@
  * File:   spi.c
  * Author: Козырев С.А.
  *  18.12.13 d:\1\spi
+ *
  * 
  * написание под MPLAB X8C на 16F1847 
  *  , PICkit3
