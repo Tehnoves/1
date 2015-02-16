@@ -83,7 +83,7 @@ ROM char InitConfigRegsPri[] = {
 		/* 25 *0x19*/ 			0xC3, // 4th byte of Sync word,
 		/* 26 *0x1a*/ 			FC_200 | TXPOWER_13,                                           //0b01110000 
 		/* 27 *0x1b*/ 			CLKOUT_OFF | CLKOUT_12800,                                     //0b00000000
-		/* 28 *0x1c*/ 			MANCHESTER_OFF | 2,										       //0b00000010
+		/* 28 *0x1c*/ 			MANCHESTER_OFF | 32,										       //0b00000010
 		/* 29 *0x1d*/ 			NODEADRS_VALUE,                                                //0
 		/* 30 *0x1e*/ 			PKT_FORMAT_FIXED | PREAMBLE_SIZE_3 | WHITENING_OFF | CRC_ON | ADRSFILT_NONE,  //0b01001000
  		/* 31 *0x1f*/ 			FIFO_AUTOCLR_ON | FIFO_STBY_ACCESS_WRITE                      //0b00000000
@@ -96,7 +96,7 @@ ROM char InitConfigRegsPri[] = {
 		/* 2 */				0x0a,  //b`00001001,										  //0b00001001
 		/* 3 */			   0x13,  //0b00010011,										  //0b00010011	
 		/* 4 */				OOKFLOORTHRESH_VALUE,							  //0b00001100
-		/* 5 */				0b00001111,  //0b00001111,                                       //0b00001111 FIFOSIZE_64 | FIFO_THRSHOLD_1
+		/* 5 */				0b01001111,  //0b00001111,                                       //0b00001111 FIFOSIZE_64 | FIFO_THRSHOLD_1
 		/* 6 */				153,
 		/* 7 */				122,
 		/* 8 */				68,
@@ -119,7 +119,7 @@ ROM char InitConfigRegsPri[] = {
 		/* 25 0x19*/ 			0xC3, // 4th byte of Sync word,
 		/* 26 0x1a*/ 			FC_200 | TXPOWER_13,                                           //0b01110000 
 		/* 27 0x1b*/ 			CLKOUT_OFF | CLKOUT_12800,                                     //0b00000000
-		/* 28 0x1c*/ 			MANCHESTER_OFF | 16,										       //0b00000010
+		/* 28 0x1c*/ 			MANCHESTER_OFF | 32,										       //0b00000010
 		/* 29 0x1d*/ 			NODEADRS_VALUE,                                                //0
 		/* 30 0x1e*/ 			PKT_FORMAT_FIXED | PREAMBLE_SIZE_3 | WHITENING_OFF | CRC_ON | ADRSFILT_NONE,  //0b01001000
  		/* 31 0x1f*/ 			FIFO_AUTOCLR_ON | FIFO_STBY_ACCESS_WRITE                      //0b00000000
@@ -169,8 +169,8 @@ ROM char InitConfigRegsPri[] = {
 
   bit cs_con,bff;
 bit enable,flag;
-unsigned char  TxPacket[packetlength];
-unsigned char  RxPacket[packetlength];
+unsigned char  TxPacket[32];
+unsigned char  RxPacket[32];
 unsigned char takt,a4,a5;
 unsigned char RF_Mode = RF_STANDBY;
 	bit IRQ0,IRQ0_sekond,IRQ0_sekond2;
@@ -431,7 +431,7 @@ void di_(void)
 					diagnoz[6] = read_spi_con(0x1a); 
 					diagnoz[7] = read_spi_con(0x12);
 					diagnoz[8] = read_spi_con(0x1e);
-					diagnoz[9] = read_spi_con(0x04);
+					diagnoz[9] = read_spi_con(0x05);
 					diagnoz[10] = read_spi_con(0x1f);	
 
 a=0;
@@ -465,18 +465,21 @@ void Send_Packet_my(void)
 		dia();
 		//WriteFIFO(TxPacketLen+1);
 
-		WriteFIFO(16);
+	//	WriteFIFO(16);
 		WriteFIFO(0x23);     //Node_adrs
-	WriteFIFO(0x44); 
-	
+//	WriteFIFO(0x44); 
+		WriteFIFO(0x1);
+	WriteFIFO(0x2);
+	WriteFIFO(0x3);
+	WriteFIFO(0x4);
 		init_RX();
 		init_TX();
-		for(ii=0; ii< 31; ii++)
+		for(ii=0; ii< 16; ii++)
 		{
 		WriteFIFO(TxPacket[ii]);
 		}
-	
-/*	a1 =read_spi_con(0x1f); 
+/*
+	a1 =read_spi_con(0x1f); 
 		write_spi_con(0x1F,0x40);
 		a2 =read_spi_con(0x1f); 
 		a= 0;
@@ -488,9 +491,9 @@ dia();
 						a++;
 					}
 		write_spi_con(0x1F,a1);
-		a2 =read_spi_con(0x1f);*/
+		a2 =read_spi_con(0x1f);
 	//	INTCONbits.GIE = 0;    //?
-	
+	*/
 
 		//до этого момента на ноге прерывания 0
 		SetRFMode_my(RF_TRANSMITTER);
@@ -514,6 +517,7 @@ dia();
 
 	//	write_spi_con(0x16, 0x68);
 		SetRFMode_my(RF_STANDBY);	//rfmode = ресивер
+dia();
 		//Reset FIFO  очистить буфер после передачи
 		i = read_spi_con(REG_IRQPARAM0);
 		write_spi_con(REG_IRQPARAM0, (i | 0x01));
