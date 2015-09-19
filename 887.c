@@ -23,6 +23,7 @@
 *  1   2    3    4   5   6    7     8 
 *  CS  SO        GND SI  SCK  HOLD  +
 *  V6.0  ïðîáà I2C äëÿ TIC   --------------------->
+*  c:/key/16F887.pdf
 *
 */
 
@@ -240,7 +241,11 @@ void minus() {
  }
 	void interrupt Interrupt()
 		{
-
+if ((PIE1bits.SSPIE==1)&(PIR1bits.SSPIF == 1 ))  //////////////////// ÎÖÈÔÐÎÂÊÀ	
+			{
+				PIR1bits.SSPIF = 0;	
+			}
+			
 if (PIR1bits.ADIF)  // there is only one interrupt vector so you should check to verify what caused the interrupt
 				{
 				
@@ -358,6 +363,31 @@ if (counter >= 4)
 	T2CONbits.TMR2ON = 0x1;
 	TMR2=(0);
 
+////////	SPBRGL=(0xff & 206);								// !!!!!!!!!!!!! ýòî 9600 íå çàáóäü âåðíóòü 19200
+			SPBRGH =(0xff & (206 >> 8));   
+
+				
+												//	SPBRG =  414; //;  //       33  1666*2  206
+
+
+												//	TXSTAbits.CSRC = 0X01;						// Asynchronous mode: Don’t care
+													/*
+													TXSTAbits.TX9  = 0X01;						// 0= Selects 8-bit transmission
+													TXSTAbits.SYNC = 0X00;						// 0= Asynchronous mode
+													TXSTAbits.BRGH = 0X01;						// 1= High speed
+													TXSTAbits.TX9D=1;							// Can be address/data bit or a parity bit
+													*/
+																								 // RCSTAbits.RX9  = 0X0; 
+			SSPCONbits.SSPEN = 1;
+			SSPCONbits.CKP = 1;
+			SSPCONbits.SSPM = 0x08;
+			SSPSTATbits.SMP = 1;
+			SSPSTATbits.CKE = 0;
+			//SSP1STATbits.SMP = 0;
+			SSPADD = 0x27;   // 100kHz
+							  // 0x09  400kHz 	
+	
+	
 	IOCBbits.IOCB = 1;
 //	OPTION_REGbits.T0CS=0;
 									//	TMR2H =(0xff & (temp >> 8));  T0IE
@@ -366,6 +396,7 @@ if (counter >= 4)
 	INTCONbits.T0IE = 1;
 	PIE1bits.TMR1IE =1;
 	PIE1bits.TMR2IE =1;
+	PIE1bits.SSPIE = 1;            //   Synchronous Serial Port 1 (MSSP1) Interrupt Enable bi
 	PIE1bits.ADIE =1;
 	PIE2bits.EEIE =1;
 
@@ -448,6 +479,30 @@ text[1] = 2;
 text[2] = 3;
 text[3] = 4;
 counter = 1;
+
+while (1)
+		{
+			SSPBUF = 0x72;
+										//SSP1CON2bits.SEN=1; //
+										// SSP1CON2
+										// PEN: Stop Condition Enable bit (in I2C Master mode only)
+										// RSEN: Repeated Start Condition Enabled bit (in I2C Master mode only)
+										// SEN: Start Condition Enabled bit (in I2C Master mode only)
+										// RCEN: Receive Enable bit (in I2C Master mode only)
+										
+										//  ACKSTAT: Acknowledge Status bit (in I2C mode only)  1 = Acknowledge was not received   0 = Acknowledge was received
+										//  
+										//
+										//
+				asm("nop");
+				asm("nop");
+				asm("nop");
+				asm("nop");
+			
+		}
+
+
+
 	while (1)
 	{
 	if (flag)
